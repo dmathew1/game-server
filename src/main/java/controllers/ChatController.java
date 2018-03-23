@@ -2,6 +2,7 @@ package controllers;
 
 import models.InputMessage;
 import models.OutputMessage;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
@@ -13,9 +14,9 @@ import org.springframework.stereotype.Controller;
 @Controller
 public class ChatController {
 
-    @MessageMapping("/chat")
-    @SendTo("/topic/greetings")
-    public OutputMessage sendOutputMessage(InputMessage inputMessage) throws Exception{
+    @MessageMapping("/chat/{topic}")
+    @SendTo("/topic/messages")
+    public OutputMessage sendOutputMessage(@DestinationVariable("topic") String topic, InputMessage inputMessage) throws Exception{
         return new OutputMessage(inputMessage.getMessage());
     }
 }
