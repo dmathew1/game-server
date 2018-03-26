@@ -1,5 +1,7 @@
 package application;
 
+import configuration.ApplicationConfig;
+import configuration.StompSessionHandlerConfig;
 import models.InputMessage;
 import org.springframework.lang.Nullable;
 import org.springframework.messaging.converter.MappingJackson2MessageConverter;
@@ -24,73 +26,23 @@ public class ChatClient {
 
     public static void main(String[] args) throws Exception{
 
-        /**
-         * Create a websocketclient
-         * research about transport
-         * research about sockJS and transport
-         */
+        //once websocket client is created and decoarted with sockJS
         WebSocketClient simpleWebSocketClient = new StandardWebSocketClient();
         List<Transport> transports = new ArrayList<>(1);
         transports.add(new WebSocketTransport(simpleWebSocketClient));
         SockJsClient sockJsClient = new SockJsClient(transports);
 
 
-        /**
-         * After creating a websocket client....need to create websocketStompclient???
-         */
+        //decorate with stomp protocol
         WebSocketStompClient webSocketStompClient = new WebSocketStompClient(sockJsClient);
         webSocketStompClient.setMessageConverter(new MappingJackson2MessageConverter());
 
 
-        /**
-         * What is a session handler and why do we need a stompSession handler...
-         */
-        String url = "ws://localhost:8080/chat";
-        StompSessionHandler sessionHandler = new StompSessionHandler() {
-            @Override
-            public void afterConnected(StompSession stompSession, StompHeaders stompHeaders) {
+        //Initiate a session with the session handler
+        StompSession session = webSocketStompClient.connect(ApplicationConfig.SERVER_HOST,new StompSessionHandlerConfig()).get();
 
-                //after connected, subscribe the output channel from WS server
-                stompSession.subscribe("/topic/messages", new StompFrameHandler() {
-                    @Override
-                    public Type getPayloadType(StompHeaders stompHeaders) {
-                        return InputMessage.class;
-                    }
-
-                    @Override
-                    public void handleFrame(StompHeaders stompHeaders, @Nullable Object o) {
-                        System.out.println(o.toString());
-                    }
-                });
-            }
-
-            @Override
-            public void handleException(StompSession stompSession, @Nullable StompCommand stompCommand, StompHeaders stompHeaders, byte[] bytes, Throwable throwable) {
-
-            }
-
-            @Override
-            public void handleTransportError(StompSession stompSession, Throwable throwable) {
-
-            }
-
-            @Override
-            public Type getPayloadType(StompHeaders stompHeaders) {
-                return null;
-            }
-
-            @Override
-            public void handleFrame(StompHeaders stompHeaders, @Nullable Object o) {
-
-            }
-        };
-
-        /**
-         * Then we need to initiate a session..
-         */
-        StompSession session = webSocketStompClient.connect(url,sessionHandler).get();
+        //Parse user input and send
         BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
-
         for(;;){
             String line = in.readLine();
             if(line == null) break;

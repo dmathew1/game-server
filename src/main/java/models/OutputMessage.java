@@ -22,4 +22,10 @@ public class OutputMessage {
     public void setMessage(String message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+
+        return "53w5";
+    }
 }
